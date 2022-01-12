@@ -1,16 +1,22 @@
 class Game
-  attr_reader :start_score, :win_score, :players
+  attr_reader :win_score, :players, :board
   attr_accessor :game_pieces
 
-  def initialize(board_area, game_pieces, player_count, start_score, win_score)
-    @board = []
-    @game_pieces = game_pieces
+  def initialize(
+    board_area,
+    game_pieces,
+    player_count,
+    win_score,
+    win_condition
+  )
+    @board = Array.new(board_area) { |i| i + 1 }
     @board_axis_size = Math.sqrt(board_area)
+    @game_pieces = game_pieces
     @player_count = player_count
-    @start_score = start_score
     @win_score = win_score
+    @win_condition = win_condition
     @players = []
-    create_board
+    @current_player = 0
   end
 
   def add_player(player)
@@ -25,33 +31,43 @@ class Game
   def avail_pieces
     @game_pieces.select { |_obj, val| val.nil? }.keys
   end
-
+  
   def print_board
-    @board.each_with_index do |row, index|
-      puts " #{row.join(' ')} "
-      puts horizontal_line(@board_axis_size) if index < @board.length - 1
+    board = []
+    
+    create_board.each do |row|
+      updated_row = []
+      
+      row.each_with_index do |col_obj, index|
+        updated_row.push(col_obj)
+        updated_row.push('|') if index < row.length - 1
+      end
+      
+      board.push(updated_row)
     end
-    puts ''
+    
+    board.each_with_index do |row, index|
+      puts " #{row.join(' ')} "
+      puts horizontal_line(@board_axis_size) if index < board.length - 1
+    end
   end
   
   private
   
   def create_board
-    board = Array.new(@board_axis_size) { Array.new(@board_axis_size) }
-    position = 1
+    new_board = []
+    row = []
     
-    board.each do |row|
-      updated_row = []
-
-      row.each_with_index do |_col_obj, index|
-        updated_row.push(position)
+    @board.each_with_index do |elem, index|
+      row.push(elem)
       
-        position += 1
-        updated_row.push('|') if index < row.length - 1
+      if ((index + 1) % @board_axis_size).zero?
+        new_board.push(row)
+        row = []
       end
-
-      @board.push(updated_row)
     end
+    
+    new_board
   end
   
   def horizontal_line(size)
