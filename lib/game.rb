@@ -1,83 +1,65 @@
 class Game
-  attr_reader :win_score, :players, :board
+  attr_reader :players, :board
   attr_accessor :game_pieces
 
-  def initialize(
-    board_area,
-    game_pieces,
-    player_count,
-    win_score,
-    win_condition
-  )
-    @board = Array.new(board_area) { |i| i + 1 }
-    @board_axis_size = Math.sqrt(board_area)
-    @game_pieces = game_pieces
-    @player_count = player_count
-    @win_score = win_score
-    @win_condition = win_condition
+  def initialize
+    @board = Array.new(9) { |i| i + 1 }
+    @board_axis_size = 3
+    @game_pieces = %w[X O]
+    @win_condition = [
+      [1, 2, 3], [4, 5, 6], [7, 8, 9], [1, 4, 7],
+      [2, 5, 8], [3, 6, 9], [1, 5, 9], [3, 5, 7]
+    ]
     @players = []
     @current_player = 0
   end
 
   def add_player(player)
-    @players.push(player) if @players.length < @player_count
+    @players.push(player) if @players.length < 2
   end
 
   def player_list
     @players.each { |player| puts "Player: #{player.name}" }
-    puts ''
   end
-  
-  def avail_pieces
-    @game_pieces.select { |_obj, val| val.nil? }.keys
-  end
-  
-  def print_board
-    board = []
-    
-    create_board.each do |row|
-      updated_row = []
-      
-      row.each_with_index do |col_obj, index|
-        updated_row.push(col_obj)
-        updated_row.push('|') if index < row.length - 1
-      end
-      
-      board.push(updated_row)
-    end
-    
-    board.each_with_index do |row, index|
-      puts " #{row.join(' ')} "
-      puts horizontal_line(@board_axis_size) if index < board.length - 1
-    end
-  end
-  
-  private
-  
-  def create_board
-    new_board = []
-    row = []
-    
-    @board.each_with_index do |elem, index|
-      row.push(elem)
-      
-      if ((index + 1) % @board_axis_size).zero?
-        new_board.push(row)
-        row = []
-      end
-    end
-    
-    new_board
-  end
-  
-  def horizontal_line(size)
-    line = ''
-  
-    for i in 1..size
-      line += '---'
-      line += '|' if i < size
-    end
 
-    line
+  def player_info
+    @players.each_with_index do |player, index|
+      puts "Player #{index + 1} what is your name?\n"
+      player.name = gets.chomp.capitalize
+      puts "\nGame pieces available:"
+      @game_pieces.each { |piece| puts piece }
+      assign_piece(player)
+    end
+  end
+
+  def assign_piece(player)
+    if @game_pieces.length > 1
+      puts "\n#{player.name}, what is your game piece?"
+
+      loop do
+        player.game_piece = gets.chomp.upcase
+
+        if !@game_pieces.include?(player.game_piece)
+          puts "\nThis game piece is not an available option. Please enter a valid option:"
+          next
+        else
+          puts "\n#{player.name} has selected: \n#{player.game_piece}\n\n"
+          @game_pieces.delete(player.game_piece)
+          break
+        end
+      end
+    else
+      puts "\n#{player.name} will be assigned game piece: \n#{@game_pieces[0]}\n\n"
+      player.game_piece = @game_pieces[0]
+      @game_pieces.delete(@game_pieces[0])
+    end
+  end
+
+  def print_board
+    puts "\n #{@board[0]} | #{@board[1]} | #{@board[2]} "
+    puts '---|---|---'
+    puts " #{@board[3]} | #{@board[4]} | #{@board[5]} "
+    puts '---|---|---'
+    puts " #{@board[6]} | #{@board[7]} | #{@board[8]} \n"
   end
 end
