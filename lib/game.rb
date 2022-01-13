@@ -1,5 +1,5 @@
 class Game
-  attr_reader :players, :board
+  attr_reader :players, :board, :current_player
   attr_accessor :game_pieces
 
   def initialize
@@ -22,6 +22,26 @@ class Game
     @players.each { |player| puts "Player: #{player.name}" }
   end
 
+  def toggle_player
+    case @current_player
+    when 0 then @current_player = 1
+    when 1 then @current_player = 0
+    end
+  end
+
+  def select_position(player)
+    puts "\n#{player.name}, choose a position from the available positions on the board:"
+    position = gets.chomp.to_i - 1
+
+    until @board[position].instance_of?(Integer)
+      puts "\nThis position is not available. Please choose again:"
+      position = gets.chomp.to_i - 1
+    end
+
+    @board[position] = player.game_piece
+    print_board
+  end
+
   def player_info
     @players.each_with_index do |player, index|
       puts "Player #{index + 1} what is your name?\n"
@@ -35,19 +55,15 @@ class Game
   def assign_piece(player)
     if @game_pieces.length > 1
       puts "\n#{player.name}, what is your game piece?"
+      player.game_piece = gets.chomp.upcase
 
-      loop do
+      until @game_pieces.include?(player.game_piece)
+        puts "\nThis game piece is not an available option. Please enter a valid option:"
         player.game_piece = gets.chomp.upcase
-
-        if !@game_pieces.include?(player.game_piece)
-          puts "\nThis game piece is not an available option. Please enter a valid option:"
-          next
-        else
-          puts "\n#{player.name} has selected: \n#{player.game_piece}\n\n"
-          @game_pieces.delete(player.game_piece)
-          break
-        end
       end
+
+      puts "\n#{player.name} has selected: \n#{player.game_piece}\n\n"
+      @game_pieces.delete(player.game_piece)
     else
       puts "\n#{player.name} will be assigned game piece: \n#{@game_pieces[0]}\n\n"
       player.game_piece = @game_pieces[0]
