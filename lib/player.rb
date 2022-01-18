@@ -1,11 +1,8 @@
 class Player
-  attr_accessor :name, :game_piece, :score
+  attr_accessor :name, :game_piece
 
-  def initialize(game)
+  def initialize
     @name = ''
     @game_piece = ''
-    @game = game
-    @score = 0
-    @game.add_player(self)
   end
 end

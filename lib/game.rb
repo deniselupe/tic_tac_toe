@@ -1,21 +1,32 @@
 class Game
-  attr_reader :players, :board, :current_player
-  attr_accessor :game_pieces
-
   def initialize
     @board = Array.new(9) { |i| i + 1 }
-    @board_axis_size = 3
     @game_pieces = %w[X O]
+    @players = []
+    @current_player = 0
+    @game_over = false
     @win_condition = [
       [0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6],
       [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]
     ]
-    @players = []
-    @current_player = 0
   end
 
-  def add_player(player)
-    @players.push(player) if @players.length < 2
+  def game_start
+    2.times { @players.push(Player.new) }
+    player_info
+    play_loop
+  end
+
+  private
+
+  def play_loop
+    until @game_over == true
+      player_list
+      print_board
+      select_position(@players[@current_player])
+      win_check
+      toggle_player
+    end
   end
 
   def player_info
@@ -56,7 +67,7 @@ class Game
     puts '---|---|---'
     puts " #{@board[3]} | #{@board[4]} | #{@board[5]} "
     puts '---|---|---'
-    puts " #{@board[6]} | #{@board[7]} | #{@board[8]} \n"
+    puts " #{@board[6]} | #{@board[7]} | #{@board[8]} \n\n"
   end
 
   def toggle_player
@@ -67,7 +78,7 @@ class Game
   end
 
   def select_position(player)
-    puts "\n#{player.name}, choose a position from the available positions on the board:"
+    puts "#{player.name}, choose a position from the available positions on the board:"
     position = gets.chomp.to_i - 1
 
     until @board[position].instance_of?(Integer)
@@ -76,7 +87,19 @@ class Game
     end
 
     @board[position] = player.game_piece
-    print_board
+    puts ''
+  end
+
+  def win_check
+    if winner?(@players[@current_player])
+      puts "#{@players[@current_player].name} wins!"
+      @game_over = true
+      print_board
+    elsif board_full?
+      puts "Game over. It's a draw."
+      @game_over = true
+      print_board
+    end
   end
 
   def winner?(player)
