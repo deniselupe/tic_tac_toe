@@ -14,6 +14,7 @@ class Game
   def game_start
     2.times { @players.push(Player.new) }
     player_info
+    sleep 2
     play_loop
   end
 
@@ -21,8 +22,6 @@ class Game
 
   def play_loop
     until @game_over == true
-      player_list
-      print_board
       select_position(@players[@current_player])
       win_check
       toggle_player
@@ -31,25 +30,26 @@ class Game
 
   def player_info
     @players.each_with_index do |player, index|
-      puts "Player #{index + 1} what is your name?\n"
+      clear
+      puts "Player #{index + 1} what is your name?"
       player.name = gets.chomp.capitalize
-      puts "\nGame pieces available:"
-      @game_pieces.each { |piece| puts piece }
       assign_piece(player)
     end
   end
 
   def assign_piece(player)
+    avail_pieces
+
     if @game_pieces.length > 1
       puts "\n#{player.name}, what is your game piece?"
       player.game_piece = gets.chomp.upcase
 
       until @game_pieces.include?(player.game_piece)
-        puts "\nThis game piece is not an available option. Please enter a valid option:"
+        avail_pieces
+        puts "\n#{player.name}, this game piece is not an available option. Please select a valid option:"
         player.game_piece = gets.chomp.upcase
       end
 
-      puts "\n#{player.name} has selected: \n#{player.game_piece}\n\n"
       @game_pieces.delete(player.game_piece)
     else
       puts "\n#{player.name} will be assigned game piece: \n#{@game_pieces[0]}\n\n"
@@ -58,16 +58,38 @@ class Game
     end
   end
 
-  def player_list
-    @players.each { |player| puts "Player: #{player.name}" }
+  def avail_pieces
+    clear
+    puts 'Game pieces available:'
+    @game_pieces.each { |piece| puts piece }
   end
 
   def print_board
+    clear
+    player_list
     puts "\n #{@board[0]} | #{@board[1]} | #{@board[2]} "
     puts '---|---|---'
     puts " #{@board[3]} | #{@board[4]} | #{@board[5]} "
     puts '---|---|---'
     puts " #{@board[6]} | #{@board[7]} | #{@board[8]} \n\n"
+  end
+
+  def player_list
+    @players.each { |player| puts "Player: #{player.name} (#{player.game_piece})" }
+  end
+
+  def select_position(player)
+    print_board
+    puts "#{player.name}, select a position from the available positions on the board:"
+    position = gets.chomp.to_i - 1
+
+    until @board[position].instance_of?(Integer)
+      print_board
+      puts "#{player.name}, this position is not available. Please select again:"
+      position = gets.chomp.to_i - 1
+    end
+
+    @board[position] = player.game_piece
   end
 
   def toggle_player
@@ -77,28 +99,15 @@ class Game
     end
   end
 
-  def select_position(player)
-    puts "#{player.name}, choose a position from the available positions on the board:"
-    position = gets.chomp.to_i - 1
-
-    until @board[position].instance_of?(Integer)
-      puts "\nThis position is not available. Please choose again:"
-      position = gets.chomp.to_i - 1
-    end
-
-    @board[position] = player.game_piece
-    puts ''
-  end
-
   def win_check
     if winner?(@players[@current_player])
+      print_board
       puts "#{@players[@current_player].name} wins!"
       @game_over = true
-      print_board
     elsif board_full?
+      print_board
       puts "Game over. It's a draw."
       @game_over = true
-      print_board
     end
   end
 
@@ -110,5 +119,9 @@ class Game
 
   def board_full?
     @board.all? { |position| position.instance_of?(String) }
+  end
+
+  def clear
+    print "\e[2J\e[H"
   end
 end
